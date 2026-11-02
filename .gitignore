@@ -1,0 +1,9 @@
+# macOS
+.DS_Store
+
+# Devin
+.devin/
+
+# IDE
+.vscode/
+.idea/

@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oathsworn Advanced Dice Calculator</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2a2a2a;
+            --text-color: #e0e0e0;
+            --border-color: #444;
+            
+            --white-die: #f0f0f0;
+            --yellow-die: #f39c12;
+            --red-die: #e74c3c;
+            --black-die: #34495e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #fff;
+            grid-column: 1 / -1;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 850px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn-die {
+            padding: 8px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-die:hover { opacity: 0.9; }
+        .btn-die:active { transform: scale(0.98); }
+
+        .btn-white { background-color: var(--white-die); color: #111; }
+        .btn-yellow { background-color: var(--yellow-die); color: #fff; }
+        .btn-red { background-color: var(--red-die); color: #fff; }
+        .btn-black { background-color: var(--black-die); color: #fff; border: 1px solid #555; }
+
+        .settings-box, .tokens-box, .modifiers-box {
+            background: #222;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .tokens-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .token-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.82rem;
+        }
+
+        .number-input-group {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 8px;
+        }
+
+        .number-input-group input {
+            background: #1e1e1e;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            width: 60px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn-preset {
+            background: #333;
+            border: 1px solid var(--border-color);
+            color: #ccc;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+            flex: 1;
+        }
+        .btn-preset:hover { background: #444; color: #fff; }
+
+        .loadouts-box {
+            background: #222;
+            padding: 10px 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .loadout-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+
+        .loadout-row input {
+            flex: 1;
+            background: #1e1e1e;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .btn-action {
+            background: #2980b9;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        .btn-action:hover { background: #3498db; }
+
+        .loadout-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .loadout-chip {
+            background: #333;
+            border: 1px solid var(--border-color);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: #ddd;
+        }
+        .loadout-chip:hover { background: #444; color: #fff; }
+        .loadout-chip .del-loadout { color: #e74c3c; font-weight: bold; cursor: pointer; }
+
+        .dice-pool-container {
+            min-height: 45px;
+            background: #1e1e1e;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .die-icon {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            vertical-align: middle;
+            flex-shrink: 0;
+        }
+        .icon-white { background-color: var(--white-die); border: 1.5px solid #222; }
+        .icon-yellow { background-color: var(--yellow-die); border: 1.5px solid rgba(255,255,255,0.8); }
+        .icon-red { background-color: var(--red-die); border: 1.5px solid rgba(255,255,255,0.8); }
+        .icon-black { background-color: var(--black-die); border: 1.5px solid rgba(255,255,255,0.8); }
+
+        .die-tag {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tag-white { background-color: var(--white-die); color: #111; }
+        .tag-yellow { background-color: var(--yellow-die); color: #fff; }
+        .tag-red { background-color: var(--red-die); color: #fff; }
+        .tag-black { background-color: var(--black-die); color: #fff; border: 1px solid #555; }
+
+        .die-tag .remove-btn {
+            cursor: pointer;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+        .die-tag .remove-btn:hover { opacity: 1; }
+
+        .clear-btn {
+            margin-left: auto;
+            background: transparent;
+            border: 1px solid #666;
+            color: #aaa;
+            padding: 3px 6px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .clear-btn:hover { color: #fff; border-color: #999; }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .metric-card {
+            background: #222;
+            padding: 10px 8px;
+            border-radius: 8px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .metric-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .metric-sub {
+            font-size: 0.72rem;
+            color: #aaa;
+            margin-top: 2px;
+            line-height: 1.1;
+        }
+
+        .metric-label {
+            font-size: 0.68rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .val-good { color: #2ecc71; }
+        .val-bad { color: #e74c3c; }
+
+        .wound-table-container {
+            max-height: 340px;
+            overflow-y: auto;
+            background: #222;
+            border-radius: 8px;
+        }
+
+        .wound-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .wound-table th, .wound-table td {
+            padding: 10px 14px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            position: relative;
+        }
+
+        .wound-table th {
+            background: #2a2a2a;
+            color: #aaa;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .wound-bar {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            background: rgba(41, 128, 185, 0.22);
+            z-index: 0;
+            pointer-events: none;
+            transition: width 0.2s ease;
+        }
+
+        .wound-table td span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .wound-table tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Oathsworn Advanced Dice Calculator</h1>
+
+    <div class="main-grid">
+        <!-- LEFT COLUMN: Inputs, Loadouts, Dice Controls & Tokens -->
+        <div>
+            <div class="section-title" style="margin-top:0;">1. Target Defence</div>
+            <div class="settings-box">
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; color: #aaa; margin-bottom: 8px;">
+                    <span>Enemy Defence Value:</span>
+                </div>
+                <div class="preset-buttons" style="justify-content: space-between;">
+                    <button class="btn-preset" id="defBtn1" onclick="setDefence(1)">1</button>
+                    <button class="btn-preset" id="defBtn2" onclick="setDefence(2)">2</button>
+                    <button class="btn-preset" id="defBtn3" onclick="setDefence(3)">3</button>
+                    <button class="btn-preset" id="defBtn4" onclick="setDefence(4)">4</button>
+                    <button class="btn-preset" id="defBtn5" onclick="setDefence(5)">5</button>
+                    <button class="btn-preset" id="defBtn6" onclick="setDefence(6)">6</button>
+                </div>
+                <input type="hidden" id="defenceInput" value="3">
+            </div>
+
+            <div class="section-title">2. Loadouts</div>
+            <div class="loadouts-box">
+                <div class="loadout-row">
+                    <input type="text" id="loadoutNameInput" placeholder="Name current loadout...">
+                    <button class="btn-action" onclick="saveCurrentLoadout()">Save Pool</button>
+                </div>
+                <div class="loadout-chips" id="loadoutChips">
+                    <!-- Saved loadouts will appear here -->
+                </div>
+            </div>
+
+            <div class="section-title">3. Add Base Dice to Pool</div>
+            <div class="controls">
+                <button class="btn-die btn-white" onclick="addDie('White')">+ White</button>
+                <button class="btn-die btn-yellow" onclick="addDie('Yellow')">+ Yellow</button>
+                <button class="btn-die btn-red" onclick="addDie('Red')">+ Red</button>
+                <button class="btn-die btn-black" onclick="addDie('Black')">+ Black</button>
+            </div>
+
+            <div class="section-title">4. Active Tokens & Modifiers</div>
+            <div class="tokens-box">
+                <div class="tokens-grid">
+                    <div class="token-group">
+                        <span style="font-size: 0.75rem; color: #aaa; font-weight: bold;">REROLL TOKENS</span>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="reroll1" onchange="handleRerollChange(1)"> 1st Reroll
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="reroll2" onchange="handleRerollChange(2)"> 2nd Reroll
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="reroll3" onchange="handleRerollChange(3)"> 3rd Reroll
+                        </label>
+                        <span style="font-size: 0.7rem; color: #888; margin-top: 4px;">Used to avoid misses only.</span>
+                    </div>
+                    <div class="token-group">
+                        <span style="font-size: 0.75rem; color: #aaa; font-weight: bold;">EMPOWER TOKENS</span>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="empower1" onchange="handleEmpowerChange(1)"> 1st Empower (3up)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="empower2" onchange="handleEmpowerChange(2)"> 2nd Empower (6up)
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="empower3" onchange="handleEmpowerChange(3)"> 3rd Empower (9up)
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Current Dice Pool & Summary Results/Wound Table -->
+        <div>
+            <div class="section-title" style="margin-top:0;" id="poolHeaderTitle">Current Dice Pool (Base)</div>
+            <div class="dice-pool-container" id="dicePool">
+                <span style="color: #666; font-size: 0.85rem;">No dice selected. Click buttons on the left.</span>
+            </div>
+
+            <div class="section-title">Summary Results</div>
+            <div class="results">
+                <div class="metric-card">
+                    <div class="metric-label">Hit Success</div>
+                    <div class="metric-value" id="hitProb">-</div>
+                    <div class="metric-sub" id="t1Sub"></div>
+                    <div class="metric-sub" id="t2Sub"></div>
+                    <div class="metric-sub" id="t3Sub"></div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Miss Chance</div>
+                    <div class="metric-value" id="missProb">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Crit Chance (≥1 Crit)</div>
+                    <div class="metric-value" id="critProb" style="color: #f39c12;">-</div>
+                </div>
+                <div class="metric-card">
+                    <div class="metric-label">Expected Output</div>
+                    <div class="metric-value" id="expectedValue" style="font-size: 0.95rem;">-</div>
+                </div>
+            </div>
+
+            <div class="modifiers-box">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <div class="number-input-group" style="margin-bottom:0;">
+                        <label for="flatDamageInput" style="font-size: 0.78rem; color: #aaa;">Flat Damage Mod:</label>
+                        <input type="number" id="flatDamageInput" value="0" step="1" onchange="calculateAndRender()">
+                    </div>
+                    <div class="number-input-group" style="margin-bottom:0;">
+                        <label for="flatWoundInput" style="font-size: 0.78rem; color: #aaa;">Flat Wound Mod:</label>
+                        <input type="number" id="flatWoundInput" value="0" step="1" onchange="calculateAndRender()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Wound Distribution Breakdown</div>
+            <div class="wound-table-container">
+                <table class="wound-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 28%;">Wounds</th>
+                            <th style="width: 44%;">Outcome Description</th>
+                            <th style="width: 28%;">Probability</th>
+                        </tr>
+                    </thead>
+                    <tbody id="woundTableBody">
+                        <tr><td colspan="3" style="text-align: center; color: #777;">No active pool</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const DICE_FACES = {
+        White:  [{v:0,c:false},{v:0,c:false},{v:1,c:false},{v:1,c:false},{v:2,c:false},{v:2,c:true}],
+        Yellow: [{v:0,c:false},{v:0,c:false},{v:1,c:false},{v:2,c:false},{v:3,c:false},{v:3,c:true}],
+        Red:    [{v:0,c:false},{v:0,c:false},{v:2,c:false},{v:3,c:false},{v:3,c:false},{v:4,c:true}],
+        Black:  [{v:0,c:false},{v:0,c:false},{v:3,c:false},{v:3,c:false},{v:4,c:false},{v:5,c:true}]
+    };
+
+    const DICE_EV = { White: 1.2, Yellow: 1.8, Red: 2.4, Black: 3.0 };
+    const TIER_MAP = { White: 0, Yellow: 1, Red: 2, Black: 3 };
+    const REVERSE_TIER = ['White', 'Yellow', 'Red', 'Black'];
+
+    let basePool = [];
+    let loadouts = JSON.parse(localStorage.getItem('oathsworn_loadouts')) || {};
+
+    function getDieIcon(type) {
+        return `<span class="die-icon icon-${type.toLowerCase()}"></span>`;
+    }
+
+    function setDefence(val) {
+        document.getElementById('defenceInput').value = val;
+        updateDefenceButtons();
+        calculateAndRender();
+    }
+
+    function updateDefenceButtons() {
+        const currentVal = parseInt(document.getElementById('defenceInput').value);
+        for (let i = 1; i <= 6; i++) {
+            const btn = document.getElementById(`defBtn${i}`);
+            if (i === currentVal) {
+                btn.style.background = '#2980b9';
+                btn.style.color = '#fff';
+                btn.style.borderColor = '#2980b9';
+            } else {
+                btn.style.background = '#333';
+                btn.style.color = '#ccc';
+                btn.style.borderColor = 'var(--border-color)';
+            }
+        }
+    }
+
+    function addDie(type) {
+        basePool.push(type);
+        calculateAndRender();
+    }
+
+    function removeDie(index) {
+        basePool.splice(index, 1);
+        calculateAndRender();
+    }
+
+    function clearPool() {
+        basePool = [];
+        calculateAndRender();
+    }
+
+    function saveCurrentLoadout() {
+        const nameInput = document.getElementById('loadoutNameInput');
+        const name = nameInput.value.trim();
+        if (!name) {
+            alert('Please enter a name for your loadout.');
+            return;
+        }
+        if (basePool.length === 0) {
+            alert('Cannot save an empty dice pool.');
+            return;
+        }
+
+        loadouts[name] = [...basePool];
+        localStorage.setItem('oathsworn_loadouts', JSON.stringify(loadouts));
+        nameInput.value = '';
+        renderLoadouts();
+    }
+
+    function loadPresetPool(name) {
+        if (loadouts[name]) {
+            basePool = [...loadouts[name]];
+            calculateAndRender();
+        }
+    }
+
+    function deleteLoadout(name, event) {
+        event.stopPropagation();
+        delete loadouts[name];
+        localStorage.setItem('oathsworn_loadouts', JSON.stringify(loadouts));
+        renderLoadouts();
+    }
+
+    function renderLoadouts() {
+        const container = document.getElementById('loadoutChips');
+        if (Object.keys(loadouts).length === 0) {
+            container.innerHTML = '<span style="color: #666; font-size: 0.75rem;">No saved loadouts yet.</span>';
+            return;
+        }
+        let html = '';
+        for (let name in loadouts) {
+            let iconsHtml = loadouts[name].map(t => getDieIcon(t)).join(' ');
+            html += `<div class="loadout-chip" onclick="loadPresetPool('${name}')">
+                <span>${name} (${iconsHtml})</span>
+                <span class="del-loadout" onclick="deleteLoadout('${name}', event)">✕</span>
+            </div>`;
+        }
+        container.innerHTML = html;
+    }
+
+    function handleCascadingCheckbox(prefix, id) {
+        const cb1 = document.getElementById(`${prefix}1`);
+        const cb2 = document.getElementById(`${prefix}2`);
+        const cb3 = document.getElementById(`${prefix}3`);
+
+        if (id === 1) {
+            if (!cb1.checked) {
+                cb2.checked = false;
+                cb3.checked = false;
+            }
+        } else if (id === 2) {
+            if (cb2.checked) {
+                cb1.checked = true;
+            } else {
+                cb3.checked = false;
+            }
+        } else if (id === 3) {
+            if (cb3.checked) {
+                cb1.checked = true;
+                cb2.checked = true;
+            }
+        }
+        calculateAndRender();
+    }
+
+    function handleRerollChange(id) {
+        handleCascadingCheckbox('reroll', id);
+    }
+
+    function handleEmpowerChange(id) {
+        handleCascadingCheckbox('empower', id);
+    }
+
+    function getEmpowerLevel() {
+        if (document.getElementById('empower3').checked) return 9;
+        if (document.getElementById('empower2').checked) return 6;
+        if (document.getElementById('empower1').checked) return 3;
+        return 0;
+    }
+
+    function getRerollCount() {
+        if (document.getElementById('reroll3').checked) return 3;
+        if (document.getElementById('reroll2').checked) return 2;
+        if (document.getElementById('reroll1').checked) return 1;
+        return 0;
+    }
+
+    function getEmpoweredPool(pool, upgrades) {
+        let tiers = pool.map(d => TIER_MAP[d]);
+        let upgradesLeft = upgrades;
+
+        while (upgradesLeft > 0) {
+            if (tiers.length === 0 || tiers.every(t => t >= 3)) {
+                tiers.push(0);
+            }
+            let minVal = 3;
+            let idx = -1;
+            for (let i = 0; i < tiers.length; i++) {
+                if (tiers[i] < minVal) {
+                    minVal = tiers[i];
+                    idx = i;
+                }
+            }
+            if (idx !== -1 && minVal < 3) {
+                tiers[idx]++;
+                upgradesLeft--;
+            } else {
+                break;
+            }
+        }
+        return tiers.map(t => REVERSE_TIER[t]);
+    }
+
+    function calculateAndRender() {
+        const defenceVal = Math.max(1, parseInt(document.getElementById('defenceInput').value) || 1);
+        const flatDmgMod = parseFloat(document.getElementById('flatDamageInput').value) || 0;
+        const flatWoundMod = parseInt(document.getElementById('flatWoundInput').value) || 0;
+        const empowerUpgrades = getEmpowerLevel();
+        const rerollCount = getRerollCount();
+        const activePool = getEmpoweredPool(basePool, empowerUpgrades);
+
+        const isEmpowered = empowerUpgrades > 0 && activePool.length >= basePool.length;
+        document.getElementById('poolHeaderTitle').innerText = isEmpowered ? "Current Dice Pool (Empowered)" : "Current Dice Pool (Base)";
+
+        const container = document.getElementById('dicePool');
+        if (basePool.length === 0) {
+            container.innerHTML = '<span style="color: #666; font-size: 0.85rem;">No dice selected. Click buttons on the left.</span>';
+        } else {
+            let html = '';
+            activePool.forEach((type, index) => {
+                const isEmpowered = index >= basePool.length;
+                html += `<div class="die-tag tag-${type.toLowerCase()}">
+                    ${getDieIcon(type)} ${type} ${isEmpowered ? '(+)' : ''}
+                    ${!isEmpowered ? `<span class="remove-btn" onclick="removeDie(${index})">✕</span>` : ''}
+                </div>`;
+            });
+            html += `<button class="clear-btn" onclick="clearPool()">Clear All</button>`;
+            container.innerHTML = html;
+        }
+
+        if (basePool.length === 0) {
+            document.getElementById('hitProb').innerText = '-';
+            document.getElementById('missProb').innerText = '-';
+            document.getElementById('critProb').innerText = '-';
+            document.getElementById('t1Sub').innerText = '';
+            document.getElementById('t2Sub').innerText = '';
+            document.getElementById('t3Sub').innerText = '';
+            document.getElementById('expectedValue').innerText = '-';
+            document.getElementById('woundTableBody').innerHTML = '<tr><td colspan="3" style="text-align: center; color: #777;">No active pool</td></tr>';
+            return;
+        }
+
+        const N = activePool.length;
+        const diceList = activePool.map(d => DICE_FACES[d]);
+        const singleEvs = activePool.map(d => DICE_EV[d]);
+
+        function getDmgFromFaces(faces) {
+            let base = faces.reduce((sum, f, i) => sum + f.v + (f.c ? singleEvs[i] : 0), 0);
+            return Math.max(0, base + flatDmgMod);
+        }
+
+        function countBlanksInFaces(faces) {
+            return faces.filter(f => f.v === 0).length;
+        }
+
+        function hasCritInFaces(faces) {
+            return faces.some(f => f.c);
+        }
+
+        let totalMissProb = 0.0;
+        let totalEV = 0.0;
+        let totalExpectedWounds = 0.0;
+        let totalCritHits = 0.0;
+        let woundProbabilities = {};
+        let t1TriggerCount = 0.0;
+        let t2TriggerCount = 0.0;
+        let t3TriggerCount = 0.0;
+
+        const useMonteCarlo = N >= 8;
+        const totalOutcomes = useMonteCarlo ? 50000 : Math.pow(6, N);
+
+        function evaluateSingleRoll(outcome) {
+            const blanks = countBlanksInFaces(outcome);
+            const isCrit = hasCritInFaces(outcome);
+            const baseDmg = blanks < 2 ? getDmgFromFaces(outcome) : 0;
+            const outcomeWeight = 1.0 / totalOutcomes;
+
+            if (blanks < 2 && isCrit) {
+                totalCritHits += 1.0;
+            }
+
+            if (rerollCount === 0) {
+                if (blanks >= 2) {
+                    totalMissProb += 1.0;
+                    woundProbabilities[0] = (woundProbabilities[0] || 0) + outcomeWeight;
+                } else {
+                    totalEV += baseDmg;
+                    const wounds = Math.max(0, Math.floor(baseDmg / defenceVal) + flatWoundMod);
+                    totalExpectedWounds += wounds;
+                    woundProbabilities[wounds] = (woundProbabilities[wounds] || 0) + outcomeWeight;
+                }
+            } else if (rerollCount === 1) {
+                if (blanks < 2) {
+                    let bestEV = baseDmg;
+                    for (let k = 0; k < N; k++) {
+                        let expRerollDmg = 0;
+                        for (let rf of diceList[k]) {
+                            let newOut = [...outcome];
+                            newOut[k] = rf;
+                            if (countBlanksInFaces(newOut) < 2) {
+                                expRerollDmg += (1.0 / 6.0) * getDmgFromFaces(newOut);
+                            }
+                        }
+                        if (expRerollDmg > bestEV) bestEV = expRerollDmg;
+                    }
+                    totalEV += bestEV;
+                    const finalWounds = Math.max(0, Math.floor(bestEV / defenceVal) + flatWoundMod);
+                    totalExpectedWounds += finalWounds;
+                    woundProbabilities[finalWounds] = (woundProbabilities[finalWounds] || 0) + outcomeWeight;
+                } else {
+                    t1TriggerCount += 1.0;
+                    let bestMissProb = 1.1;
+                    let bestRerollEV = 0.0;
+                    let bestMissWeight = 0.0;
+                    let bestWoundWeights = {};
+
+                    for (let k = 0; k < N; k++) {
+                        let misses = 0;
+                        let rerollEvSum = 0;
+                        let subWeights = {};
+                        for (let rf of diceList[k]) {
+                            let newOut = [...outcome];
+                            newOut[k] = rf;
+                            if (countBlanksInFaces(newOut) >= 2) {
+                                misses++;
+                            } else {
+                                let dmg = getDmgFromFaces(newOut);
+                                rerollEvSum += dmg;
+                                let w = Math.max(0, Math.floor(dmg / defenceVal) + flatWoundMod);
+                                subWeights[w] = (subWeights[w] || 0) + (1.0 / 6.0);
+                            }
+                        }
+                        let missProb = misses / 6.0;
+                        let expEv = rerollEvSum / 6.0;
+                        if (missProb < bestMissProb || (missProb === bestMissProb && expEv > bestRerollEV)) {
+                            bestMissProb = missProb;
+                            bestRerollEV = expEv;
+                            bestMissWeight = missProb;
+                            bestWoundWeights = subWeights;
+                        }
+                    }
+                    totalMissProb += bestMissProb;
+                    totalEV += bestRerollEV;
+
+                    for (let w in bestWoundWeights) {
+                        totalExpectedWounds += Number(w) * bestWoundWeights[w];
+                    }
+
+                    woundProbabilities[0] = (woundProbabilities[0] || 0) + (bestMissWeight * outcomeWeight);
+                    for (let w in bestWoundWeights) {
+                        woundProbabilities[w] = (woundProbabilities[w] || 0) + (bestWoundWeights[w] * outcomeWeight);
+                    }
+                }
+            } else if (rerollCount === 2) {
+                if (blanks < 2) {
+                    totalEV += baseDmg;
+                    const wounds = Math.max(0, Math.floor(baseDmg / defenceVal) + flatWoundMod);
+                    totalExpectedWounds += wounds;
+                    woundProbabilities[wounds] = (woundProbabilities[wounds] || 0) + outcomeWeight;
+                } else {
+                    t1TriggerCount += 1.0;
+
+                    // First, find optimal 1-die reroll to check if we'd need 2nd reroll
+                    let best1DieMissProb = 1.1;
+                    for (let k = 0; k < N; k++) {
+                        let misses = 0;
+                        for (let rf of diceList[k]) {
+                            let newOut = [...outcome];
+                            newOut[k] = rf;
+                            if (countBlanksInFaces(newOut) >= 2) {
+                                misses++;
+                            }
+                        }
+                        let missProb = misses / 6.0;
+                        if (missProb < best1DieMissProb) {
+                            best1DieMissProb = missProb;
+                        }
+                    }
+                    // t2 usage probability = t1 miss probability × 1-die reroll miss probability
+                    t2TriggerCount += best1DieMissProb;
+
+                    // Now find optimal 2-die reroll for actual calculations
+                    let bestMissProb = 1.1;
+                    let bestEV = 0.0;
+                    let bestMissWeight = 0.0;
+                    let bestWoundWeights = {};
+
+                    for (let k1 = 0; k1 < N; k1++) {
+                        for (let k2 = k1 + 1; k2 < N; k2++) {
+                            let misses = 0;
+                            let evSum = 0;
+                            let subWeights = {};
+
+                            for (let rf1 of diceList[k1]) {
+                                let out1 = [...outcome];
+                                out1[k1] = rf1;
+                                for (let rf2 of diceList[k2]) {
+                                    let newOut = [...out1];
+                                    newOut[k2] = rf2;
+                                    let finalBlanks = countBlanksInFaces(newOut);
+                                    if (finalBlanks >= 2) {
+                                        misses++;
+                                    } else {
+                                        let dmg = getDmgFromFaces(newOut);
+                                        evSum += dmg;
+                                        let w = Math.max(0, Math.floor(dmg / defenceVal) + flatWoundMod);
+                                        subWeights[w] = (subWeights[w] || 0) + (1.0 / 36.0);
+                                    }
+                                }
+                            }
+                            let missProb = misses / 36.0;
+                            let expEv = evSum / 36.0;
+
+                            if (missProb < bestMissProb || (missProb === bestMissProb && expEv > bestEV)) {
+                                bestMissProb = missProb;
+                                bestEV = expEv;
+                                bestMissWeight = missProb;
+                                bestWoundWeights = subWeights;
+                            }
+                        }
+                    }
+                    totalMissProb += bestMissProb;
+                    totalEV += bestEV;
+
+                    for (let w in bestWoundWeights) {
+                        totalExpectedWounds += Number(w) * bestWoundWeights[w];
+                    }
+
+                    woundProbabilities[0] = (woundProbabilities[0] || 0) + (bestMissWeight * outcomeWeight);
+                    for (let w in bestWoundWeights) {
+                        woundProbabilities[w] = (woundProbabilities[w] || 0) + (bestWoundWeights[w] * outcomeWeight);
+                    }
+                }
+            } else {
+                // 3 Reroll tokens
+                if (blanks < 2) {
+                    totalEV += baseDmg;
+                    const wounds = Math.max(0, Math.floor(baseDmg / defenceVal) + flatWoundMod);
+                    totalExpectedWounds += wounds;
+                    woundProbabilities[wounds] = (woundProbabilities[wounds] || 0) + outcomeWeight;
+                } else {
+                    t1TriggerCount += 1.0;
+
+                    // Find optimal 1-die reroll to check if we'd need 2nd reroll
+                    let best1DieMissProb = 1.1;
+                    for (let k = 0; k < N; k++) {
+                        let misses = 0;
+                        for (let rf of diceList[k]) {
+                            let newOut = [...outcome];
+                            newOut[k] = rf;
+                            if (countBlanksInFaces(newOut) >= 2) {
+                                misses++;
+                            }
+                        }
+                        let missProb = misses / 6.0;
+                        if (missProb < best1DieMissProb) {
+                            best1DieMissProb = missProb;
+                        }
+                    }
+                    // t2 usage probability = t1 miss probability × 1-die reroll miss probability
+                    t2TriggerCount += best1DieMissProb;
+
+                    // Find optimal 2-die reroll to check if we'd need 3rd reroll
+                    let best2DieMissProb = 1.1;
+                    for (let k1 = 0; k1 < N; k1++) {
+                        for (let k2 = k1 + 1; k2 < N; k2++) {
+                            let misses = 0;
+                            for (let rf1 of diceList[k1]) {
+                                let out1 = [...outcome];
+                                out1[k1] = rf1;
+                                for (let rf2 of diceList[k2]) {
+                                    let newOut = [...out1];
+                                    newOut[k2] = rf2;
+                                    if (countBlanksInFaces(newOut) >= 2) {
+                                        misses++;
+                                    }
+                                }
+                            }
+                            let missProb = misses / 36.0;
+                            if (missProb < best2DieMissProb) {
+                                best2DieMissProb = missProb;
+                            }
+                        }
+                    }
+                    // t3 usage probability = t1 miss probability × 1-die reroll miss probability × 2-die reroll miss probability
+                    t3TriggerCount += best1DieMissProb * best2DieMissProb;
+
+                    // Now find optimal 3-die reroll for actual calculations
+                    let bestMissProb = 1.1;
+                    let bestEV = 0.0;
+                    let bestMissWeight = 0.0;
+                    let bestWoundWeights = {};
+
+                    for (let k1 = 0; k1 < N; k1++) {
+                        for (let k2 = k1 + 1; k2 < N; k2++) {
+                            for (let k3 = k2 + 1; k3 < N; k3++) {
+                                let misses = 0;
+                                let evSum = 0;
+                                let subWeights = {};
+
+                                for (let rf1 of diceList[k1]) {
+                                    let out1 = [...outcome];
+                                    out1[k1] = rf1;
+                                    for (let rf2 of diceList[k2]) {
+                                        let out2 = [...out1];
+                                        out2[k2] = rf2;
+                                        for (let rf3 of diceList[k3]) {
+                                            let newOut = [...out2];
+                                            newOut[k3] = rf3;
+                                            let finalBlanks = countBlanksInFaces(newOut);
+                                            if (finalBlanks >= 2) {
+                                                misses++;
+                                            } else {
+                                                let dmg = getDmgFromFaces(newOut);
+                                                evSum += dmg;
+                                                let w = Math.max(0, Math.floor(dmg / defenceVal) + flatWoundMod);
+                                                subWeights[w] = (subWeights[w] || 0) + (1.0 / 216.0);
+                                            }
+                                        }
+                                    }
+                                }
+                                let missProb = misses / 216.0;
+                                let expEv = evSum / 216.0;
+
+                                if (missProb < bestMissProb || (missProb === bestMissProb && expEv > bestEV)) {
+                                    bestMissProb = missProb;
+                                    bestEV = expEv;
+                                    bestMissWeight = missProb;
+                                    bestWoundWeights = subWeights;
+                                }
+                            }
+                        }
+                    }
+                    totalMissProb += bestMissProb;
+                    totalEV += bestEV;
+
+                    for (let w in bestWoundWeights) {
+                        totalExpectedWounds += Number(w) * bestWoundWeights[w];
+                    }
+
+                    woundProbabilities[0] = (woundProbabilities[0] || 0) + (bestMissWeight * outcomeWeight);
+                    for (let w in bestWoundWeights) {
+                        woundProbabilities[w] = (woundProbabilities[w] || 0) + (bestWoundWeights[w] * outcomeWeight);
+                    }
+                }
+            }
+        }
+
+        if (useMonteCarlo) {
+            for (let i = 0; i < totalOutcomes; i++) {
+                let randomOutcome = diceList.map(d => d[Math.floor(Math.random() * d.length)]);
+                evaluateSingleRoll(randomOutcome);
+            }
+        } else {
+            function generateOutcomes(depth, currentOutcome) {
+                if (depth === N) {
+                    evaluateSingleRoll([...currentOutcome]);
+                    return;
+                }
+                for (let face of diceList[depth]) {
+                    currentOutcome.push(face);
+                    generateOutcomes(depth + 1, currentOutcome);
+                    currentOutcome.pop();
+                }
+            }
+            generateOutcomes(0, []);
+        }
+
+        const missProb = (totalMissProb / totalOutcomes) * 100;
+        const hitProb = 100 - missProb;
+        const critProb = (totalCritHits / totalOutcomes) * 100;
+        const finalEV = totalEV / totalOutcomes;
+        const finalExpectedWounds = totalExpectedWounds / totalOutcomes;
+        const t1Rate = (t1TriggerCount / totalOutcomes) * 100;
+        const t2Rate = (t2TriggerCount / totalOutcomes) * 100;
+        const t3Rate = (t3TriggerCount / totalOutcomes) * 100;
+
+        const hitEl = document.getElementById('hitProb');
+        hitEl.innerText = `${hitProb.toFixed(2)}%`;
+        hitEl.className = `metric-value ${hitProb >= 74 ? 'val-good' : 'val-bad'}`;
+
+        const missEl = document.getElementById('missProb');
+        missEl.innerText = `${missProb.toFixed(2)}%`;
+        missEl.className = `metric-value ${missProb <= 26 ? 'val-good' : 'val-bad'}`;
+
+        document.getElementById('critProb').innerText = `${critProb.toFixed(2)}%`;
+
+        document.getElementById('t1Sub').innerText = rerollCount >= 1 ? `Re-roll 1 use: ${t1Rate.toFixed(1)}%` : '';
+        document.getElementById('t2Sub').innerText = rerollCount >= 2 ? `Re-roll 2 use: ${t2Rate.toFixed(1)}%` : '';
+        document.getElementById('t3Sub').innerText = rerollCount >= 3 ? `Re-roll 3 use: ${t3Rate.toFixed(1)}%` : '';
+
+        document.getElementById('expectedValue').innerHTML = 
+            `${finalEV.toFixed(2)} dmg<br><span style="font-size: 0.9rem; color: #e74c3c; font-weight: bold;">${finalExpectedWounds.toFixed(2)} Wounds</span>`;
+
+        let tableHtml = '';
+        let sortedWounds = Object.keys(woundProbabilities).map(Number).sort((a, b) => a - b);
+        let cappedProbabilities = {};
+        let sixPlusSum = 0;
+
+        for (let w of sortedWounds) {
+            let pct = woundProbabilities[w] * 100;
+            if (w >= 6) {
+                sixPlusSum += pct;
+            } else {
+                cappedProbabilities[w] = pct;
+            }
+        }
+
+        let displayWounds = Object.keys(cappedProbabilities).map(Number).sort((a, b) => a - b);
+
+        for (let w of displayWounds) {
+            let probSum = cappedProbabilities[w];
+            if (probSum <= 0.005) continue;
+
+            let desc = '';
+            if (w === 0) {
+                desc = 'Miss or 0 Wounds';
+            } else if (w === 1) {
+                desc = `Hit (${defenceVal}–${defenceVal * 2 - 1} dmg)`;
+            } else {
+                desc = `Hit (${defenceVal * w}–${defenceVal * (w + 1) - 1} dmg)`;
+            }
+
+            let rowTitle = w === 0 ? 'Miss or 0 Wounds' : `${w} Wound${w === 1 ? '' : 's'}`;
+
+            tableHtml += `<tr>
+                <td><div class="wound-bar" style="width: ${probSum}%;"></div><span><strong>${rowTitle}</strong></span></td>
+                <td><div class="wound-bar" style="width: ${probSum}%;"></div><span>${desc}</span></td>
+                <td><div class="wound-bar" style="width: ${probSum}%;"></div><span><strong>${probSum.toFixed(2)}%</strong></span></td>
+            </tr>`;
+        }
+
+        if (sixPlusSum > 0) {
+            tableHtml += `<tr>
+                <td><div class="wound-bar" style="width: ${sixPlusSum}%;"></div><span><strong>6+ Wounds</strong></span></td>
+                <td><div class="wound-bar" style="width: ${sixPlusSum}%;"></div><span>Max die damage (${defenceVal * 6}+ dmg)</span></td>
+                <td><div class="wound-bar" style="width: ${sixPlusSum}%;"></div><span><strong>${sixPlusSum.toFixed(2)}%</strong></span></td>
+            </tr>`;
+        }
+
+        document.getElementById('woundTableBody').innerHTML = tableHtml;
+    }
+
+    // Initialize loadout chips on load
+    renderLoadouts();
+    updateDefenceButtons();
+</script>
+
+</body>
+</html>
