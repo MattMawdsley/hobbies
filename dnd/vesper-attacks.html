@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vesper Dawnguard - Attack Calculator</title>
+    <style>
+        :root {
+            --bg-color: #1a1a1a;
+            --card-bg: #2a2a2a;
+            --text-color: #e0e0e0;
+            --border-color: #444;
+            --accent-color: #3498db;
+            --accent-hover: #2980b9;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            /* Damage Type Colors */
+            --piercing-color: #a0c4ff;
+            --radiant-color: #ffd166;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            color: #fff;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 25px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+
+        @media (max-width: 900px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .section-title {
+            font-size: 0.95rem;
+            font-weight: 600;
+            margin-top: 15px;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 4px;
+        }
+
+        .section-title:first-child {
+            margin-top: 0;
+        }
+
+        .info-box {
+            background: #222;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: #aaa;
+        }
+
+        .info-value {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .attack-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .attack-card {
+            background: #2a3a4a;
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+        }
+
+        .attack-name {
+            font-weight: bold;
+            font-size: 0.95rem;
+            margin-bottom: 4px;
+        }
+
+        .attack-details {
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+
+        .modifiers-box {
+            background: #222;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .modifier-group {
+            margin-bottom: 12px;
+        }
+
+        .modifier-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .group-title {
+            font-size: 0.8rem;
+            color: #aaa;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 4px;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        .resource-tracker {
+            background: #222;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .resource-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .resource-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .resource-name {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .resource-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .resource-btn {
+            background: #333;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            width: 28px;
+            height: 28px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        .resource-btn:hover {
+            background: #444;
+        }
+
+        .resource-value {
+            font-size: 0.9rem;
+            font-weight: bold;
+            min-width: 30px;
+            text-align: center;
+        }
+
+        .result-box {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 8px;
+            border: 2px solid var(--accent-color);
+            margin-bottom: 15px;
+        }
+
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .result-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .result-label {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .result-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .damage-breakdown {
+            font-size: 0.85rem;
+            margin-top: 6px;
+            padding: 6px 8px;
+            background: #252525;
+            border-radius: 4px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .dmg-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 0.8rem;
+        }
+
+        .dmg-piercing { background: rgba(160, 196, 255, 0.15); color: var(--piercing-color); border: 1px solid var(--piercing-color); }
+        .dmg-radiant { background: rgba(255, 209, 102, 0.15); color: var(--radiant-color); border: 1px solid var(--radiant-color); }
+
+        .ac-input-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .ac-input-group label {
+            font-size: 0.85rem;
+            color: #aaa;
+        }
+
+        .ac-input-group input {
+            background: #1e1e1e;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            width: 60px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .btn-preset {
+            background: #333;
+            border: 1px solid var(--border-color);
+            color: #ccc;
+            padding: 3px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: bold;
+            flex: 1;
+        }
+
+        .btn-preset:hover {
+            background: #444;
+            color: #fff;
+        }
+
+        .btn-preset.active {
+            background: var(--accent-color);
+            color: #fff;
+            border-color: var(--accent-color);
+        }
+
+        .probabilities {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .prob-card {
+            background: #222;
+            padding: 10px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .prob-label {
+            font-size: 0.7rem;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .prob-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .graph-container {
+            background: #1e1e1e;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        canvas {
+            width: 100%;
+            height: 220px;
+            background: #151515;
+            border-radius: 6px;
+        }
+
+        .breakpoint-banner {
+            margin-top: 10px;
+            padding: 8px;
+            background: rgba(52, 152, 219, 0.15);
+            border: 1px solid var(--accent-color);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #fff;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Vesper Dawnguard</h1>
+    <div class="subtitle">Human Ranger 9 - Gloom Stalker</div>
+
+    <div class="main-grid">
+        <!-- LEFT COLUMN -->
+        <div>
+            <div class="section-title">Character Info</div>
+            <div class="info-box">
+                <div class="info-row">
+                    <span class="info-label">Class:</span>
+                    <span class="info-value">Ranger 9 (Gloom Stalker)</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Proficiency Bonus:</span>
+                    <span class="info-value">+4</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">DEX Modifier:</span>
+                    <span class="info-value">+4</span>
+                </div>
+            </div>
+
+            <div class="section-title">Select Weapon</div>
+            <div class="attack-list" id="attackList">
+                <div class="attack-card">
+                    <div class="attack-name">Dragon's Wrath Hand Crossbow</div>
+                    <div class="attack-details">Stirring-tier magical hand crossbow (<span style="color:var(--piercing-color)">1d6 + DEX + 1 Piercing</span> + <span style="color:var(--radiant-color)">1d6 Radiant</span>)</div>
+                </div>
+            </div>
+
+            <div class="section-title">Attack Sequence Configuration</div>
+            <div class="modifiers-box">
+                <div class="modifier-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="extraAttack" checked onchange="calculateAttack()">
+                        Extra Attack (2 Attacks from Action)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="dreadAmbusher" checked onchange="calculateAttack()">
+                        Dread Ambusher Attack (+1 Attack & +1d8 Piercing on First Turn)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="bonusActionAttack" checked onchange="calculateAttack()">
+                        Bonus Action Off-Hand Attack (+1 Attack)
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-title">Active Modifiers</div>
+            <div class="modifiers-box">
+                <div class="modifier-group">
+                    <div class="group-title">Combat Conditions</div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="sharpshooter" onchange="calculateAttack()">
+                        Sharpshooter Global Toggle (-5 Hit, +10 Damage)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="advantage" onchange="calculateAttack()">
+                        Advantage
+                    </label>
+                </div>
+
+                <div class="modifier-group">
+                    <div class="group-title">House Rules & Effects</div>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="doddsCrits" checked onchange="calculateAttack()">
+                        Dodd's Crits (Normal damage + Max dice value)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="huntersMark" onchange="calculateAttack()">
+                        Hunter's Mark (+1d6 damage to all attacks)
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="favoredFoe" onchange="calculateAttack()">
+                        Favored Foe Marked (+1d6 damage to 1st hit only)
+                    </label>
+                </div>
+            </div>
+
+            <div class="section-title">Resource Trackers</div>
+            <div class="resource-tracker">
+                <div class="resource-row">
+                    <span class="resource-name">Favored Foe Charges</span>
+                    <div class="resource-controls">
+                        <button class="resource-btn" onclick="adjustResource('favoredFoe', -1)">-</button>
+                        <span class="resource-value" id="favoredFoeCount">3</span>
+                        <button class="resource-btn" onclick="adjustResource('favoredFoe', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT COLUMN -->
+        <div>
+            <div class="section-title">Target Armor Class</div>
+            <div class="info-box">
+                <div class="ac-input-group">
+                    <label for="targetAC">Target AC:</label>
+                    <input type="number" id="targetAC" value="15" min="1" max="30" onchange="calculateAttack()">
+                </div>
+                <div class="preset-buttons">
+                    <button class="btn-preset" onclick="setAC(10)">10</button>
+                    <button class="btn-preset" onclick="setAC(12)">12</button>
+                    <button class="btn-preset" onclick="setAC(15)">15</button>
+                    <button class="btn-preset" onclick="setAC(18)">18</button>
+                    <button class="btn-preset" onclick="setAC(20)">20</button>
+                </div>
+            </div>
+
+            <div class="section-title">Attack Round Results (Total Sequence)</div>
+            <div class="result-box" id="resultBox">
+                <div class="result-row">
+                    <span class="result-label">Attack Bonus:</span>
+                    <span class="result-value" id="attackBonus">-</span>
+                </div>
+                <div class="result-row">
+                    <span class="result-label">Base Damage Formula:</span>
+                    <span class="result-value" id="damage">-</span>
+                </div>
+                
+                <div class="prob-label" style="margin-top: 8px;">Per-Hit Damage Breakdown</div>
+                <div class="damage-breakdown" id="damageBreakdown"></div>
+
+                <div class="probabilities">
+                    <div class="prob-card">
+                        <div class="prob-label">Hit Chance</div>
+                        <div class="prob-value" id="hitChance">-</div>
+                    </div>
+                    <div class="prob-card">
+                        <div class="prob-label">Crit Chance</div>
+                        <div class="prob-value" id="critChance">-</div>
+                    </div>
+                    <div class="prob-card">
+                        <div class="prob-label">Total Expected Dmg</div>
+                        <div class="prob-value" id="expectedDamage">-</div>
+                    </div>
+                    <div class="prob-card">
+                        <div class="prob-label">Avg on Hit</div>
+                        <div class="prob-value" id="avgOnHit">-</div>
+                    </div>
+                    <div class="prob-card">
+                        <div class="prob-label">Avg on Crit</div>
+                        <div class="prob-value" id="avgOnCrit">-</div>
+                    </div>
+                    <div class="prob-card">
+                        <div class="prob-label">Total Attacks</div>
+                        <div class="prob-value" id="totalAttacksCount">-</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">Sharpshooter vs Normal Damage by Target AC</div>
+            <div class="graph-container">
+                <canvas id="acGraph" width="500" height="220"></canvas>
+                <div class="breakpoint-banner" id="breakpointBanner">Calculating break points...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const PROFICIENCY = 4;
+    const DEX_MOD = 4;
+
+    let resources = {
+        favoredFoe: 3
+    };
+
+    function init() {
+        updateResourceDisplay();
+        calculateAttack();
+    }
+
+    function calculateToHit(isSS) {
+        let value = PROFICIENCY + DEX_MOD + 2 + 1;
+        if (isSS) value -= 5;
+        return value;
+    }
+
+    // Evaluate a strike, with parameters for whether it's the first strike (gets Favored Foe) and whether HM / Ambusher apply
+    function evaluateStrike(ac, isAmbusher, isFirstStrike, isSS) {
+        let flatBonus = DEX_MOD + 1 + (isSS ? 10 : 0);
+        let diceList = [
+            { count: 1, sides: 6, label: 'Base Piercing' },
+            { count: 1, sides: 6, label: 'Radiant' }
+        ];
+
+        if (document.getElementById('huntersMark').checked) {
+            diceList.push({ count: 1, sides: 6, label: "Hunter's Mark" });
+        }
+        if (isFirstStrike && document.getElementById('favoredFoe').checked) {
+            diceList.push({ count: 1, sides: 6, label: 'Favored Foe' });
+        }
+        if (isAmbusher) {
+            diceList.push({ count: 1, sides: 8, label: 'Dread Ambusher' });
+        }
+
+        let avgHit = flatBonus;
+        let totalMaxDice = 0;
+        diceList.forEach(d => {
+            avgHit += d.count * ((d.sides + 1) / 2);
+            totalMaxDice += d.count * d.sides;
+        });
+
+        const doddsCritsActive = document.getElementById('doddsCrits').checked;
+        let avgCrit = 0;
+        if (doddsCritsActive) {
+            avgCrit = avgHit + totalMaxDice;
+        } else {
+            let diceAvg = 0;
+            diceList.forEach(d => diceAvg += d.count * ((d.sides + 1) / 2));
+            avgCrit = avgHit + diceAvg;
+        }
+
+        const hitVal = calculateToHit(isSS);
+        const neededRoll = ac - hitVal;
+        
+        let hitProb = Math.max(0.05, Math.min(0.95, (21 - neededRoll) / 20));
+        let critProb = 0.05;
+
+        if (document.getElementById('advantage').checked) {
+            hitProb = 1 - Math.pow(1 - hitProb, 2);
+            critProb = 1 - Math.pow(0.95, 2);
+        }
+
+        const normalHitProb = Math.max(0, hitProb - critProb);
+        const expectedDmg = (normalHitProb * avgHit) + (critProb * avgCrit);
+
+        return { expectedDmg, hitProb, critProb, avgHit, avgCrit };
+    }
+
+    function getRoundSequenceExpectedDamage(ac, isSS) {
+        const hasExtraAttack = document.getElementById('extraAttack').checked;
+        const actionAttacksCount = hasExtraAttack ? 2 : 1;
+        const hasDreadAmbusher = document.getElementById('dreadAmbusher').checked;
+        const hasBonusAction = document.getElementById('bonusActionAttack').checked;
+
+        let totalExpectedDamage = 0;
+        let totalAttacks = 0;
+        let strikeIndex = 0;
+
+        // 1. Dread Ambusher attack (if enabled, this is the first attack of the turn)
+        if (hasDreadAmbusher) {
+            totalAttacks++;
+            let isFirst = (strikeIndex === 0);
+            totalExpectedDamage += evaluateStrike(ac, true, isFirst, isSS).expectedDmg;
+            strikeIndex++;
+        }
+
+        // 2. Action attacks
+        const remainingActionAttacks = hasDreadAmbusher ? Math.max(0, actionAttacksCount) : actionAttacksCount;
+        for (let i = 0; i < remainingActionAttacks; i++) {
+            totalAttacks++;
+            let isFirst = (strikeIndex === 0);
+            totalExpectedDamage += evaluateStrike(ac, false, isFirst, isSS).expectedDmg;
+            strikeIndex++;
+        }
+
+        // 3. Bonus action attack
+        if (hasBonusAction) {
+            totalAttacks++;
+            let isFirst = (strikeIndex === 0);
+            totalExpectedDamage += evaluateStrike(ac, false, isFirst, isSS).expectedDmg;
+            strikeIndex++;
+        }
+
+        return { expected: totalExpectedDamage, attacks: totalAttacks };
+    }
+
+    function calculateAttack() {
+        const isSS = document.getElementById('sharpshooter').checked;
+        const toHit = calculateToHit(isSS);
+        document.getElementById('attackBonus').textContent = (toHit >= 0 ? `+${toHit}` : `${toHit}`);
+
+        const currentAC = parseInt(document.getElementById('targetAC').value) || 15;
+        // Display stats for a standard subsequent strike for the single-hit card view
+        const activeStrike = evaluateStrike(currentAC, false, false, isSS);
+        const roundRes = getRoundSequenceExpectedDamage(currentAC, isSS);
+
+        let flatBonus = DEX_MOD + 1 + (isSS ? 10 : 0);
+        let normalDiceList = [
+            { count: 1, sides: 6, label: 'Base Piercing' },
+            { count: 1, sides: 6, label: 'Radiant' }
+        ];
+        if (document.getElementById('huntersMark').checked) normalDiceList.push({ count: 1, sides: 6, label: "Hunter's Mark" });
+
+        let formulaParts = [`1d6 + 1d6 (Radiant)`, `+ ${flatBonus}`];
+        normalDiceList.slice(2).forEach(d => formulaParts.push(`+ ${d.count}d${d.sides} (${d.label})`));
+        document.getElementById('damage').textContent = formulaParts.join(' ');
+
+        const breakdownContainer = document.getElementById('damageBreakdown');
+        breakdownContainer.innerHTML = '';
+
+        const basePiercingTag = document.createElement('span');
+        basePiercingTag.className = 'dmg-tag dmg-piercing';
+        basePiercingTag.textContent = `1d6 + ${flatBonus} Piercing`;
+        breakdownContainer.appendChild(basePiercingTag);
+
+        const radiantTag = document.createElement('span');
+        radiantTag.className = 'dmg-tag dmg-radiant';
+        radiantTag.textContent = `1d6 Radiant`;
+        breakdownContainer.appendChild(radiantTag);
+
+        normalDiceList.slice(2).forEach(d => {
+            const tag = document.createElement('span');
+            tag.className = 'dmg-tag dmg-piercing';
+            tag.textContent = `${d.count}d${d.sides} ${d.label}`;
+            breakdownContainer.appendChild(tag);
+        });
+
+        if (document.getElementById('favoredFoe').checked) {
+            const ffTag = document.createElement('span');
+            ffTag.className = 'dmg-tag dmg-piercing';
+            ffTag.textContent = `+ 1d6 Piercing (1st Hit Favored Foe)`;
+            breakdownContainer.appendChild(ffTag);
+        }
+
+        if (document.getElementById('dreadAmbusher').checked) {
+            const ambushTag = document.createElement('span');
+            ambushTag.className = 'dmg-tag dmg-piercing';
+            ambushTag.textContent = `+ 1d8 Piercing (Ambusher)`;
+            breakdownContainer.appendChild(ambushTag);
+        }
+
+        document.getElementById('hitChance').textContent = `${(activeStrike.hitProb * 100).toFixed(0)}%`;
+        document.getElementById('critChance').textContent = `${(activeStrike.critProb * 100).toFixed(0)}%`;
+        document.getElementById('avgOnHit').textContent = activeStrike.avgHit.toFixed(1);
+        document.getElementById('avgOnCrit').textContent = activeStrike.avgCrit.toFixed(1);
+        document.getElementById('totalAttacksCount').textContent = roundRes.attacks;
+        document.getElementById('expectedDamage').textContent = roundRes.expected.toFixed(1);
+
+        renderGraph(currentAC);
+    }
+
+    function renderGraph(currentAC) {
+        const canvas = document.getElementById('acGraph');
+        const ctx = canvas.getContext('2d');
+        const width = canvas.width;
+        const height = canvas.height;
+
+        ctx.clearRect(0, 0, width, height);
+
+        const minAC = 10;
+        const maxAC = 22;
+        let normalData = [];
+        let ssData = [];
+        let maxDmg = 10;
+
+        for (let ac = minAC; ac <= maxAC; ac++) {
+            const norm = getRoundSequenceExpectedDamage(ac, false).expected;
+            const ss = getRoundSequenceExpectedDamage(ac, true).expected;
+            normalData.push(norm);
+            ssData.push(ss);
+            maxDmg = Math.max(maxDmg, norm, ss);
+        }
+
+        maxDmg = Math.ceil(maxDmg * 1.1);
+
+        const padding = 35;
+        const graphWidth = width - padding * 2;
+        const graphHeight = height - padding * 2;
+
+        ctx.strokeStyle = '#333';
+        ctx.fillStyle = '#888';
+        ctx.font = '10px sans-serif';
+        ctx.lineWidth = 1;
+
+        for (let i = 0; i <= 4; i++) {
+            const y = padding + (graphHeight / 4) * i;
+            const val = maxDmg - (maxDmg / 4) * i;
+            ctx.beginPath();
+            ctx.moveTo(padding, y);
+            ctx.lineTo(width - padding, y);
+            ctx.stroke();
+
+            ctx.textAlign = 'right';
+            ctx.fillText(val.toFixed(0), padding - 6, y + 3);
+        }
+
+        for (let ac = minAC; ac <= maxAC; ac += 2) {
+            const x = padding + ((ac - minAC) / (maxAC - minAC)) * graphWidth;
+            ctx.textAlign = 'center';
+            ctx.fillText(`AC ${ac}`, x, height - 10);
+        }
+
+        function drawLine(data, color) {
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            data.forEach((val, index) => {
+                const x = padding + (index / (maxAC - minAC)) * graphWidth;
+                const y = padding + graphHeight - (val / maxDmg) * graphHeight;
+                if (index === 0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            });
+            ctx.stroke();
+        }
+
+        drawLine(normalData, '#2ecc71');
+        drawLine(ssData, '#e74c3c');
+
+        const currIndex = currentAC - minAC;
+        if (currIndex >= 0 && currIndex < normalData.length) {
+            const x = padding + (currIndex / (maxAC - minAC)) * graphWidth;
+            ctx.strokeStyle = 'rgba(52, 152, 219, 0.4)';
+            ctx.setLineDash([3, 3]);
+            ctx.beginPath();
+            ctx.moveTo(x, padding);
+            ctx.lineTo(x, height - padding);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        let normalBreakPoint = null;
+        let ambusherBreakPoint = null;
+
+        for (let ac = minAC; ac <= maxAC; ac++) {
+            const normStrike = evaluateStrike(ac, false, false, false).expectedDmg;
+            const ssStrike = evaluateStrike(ac, false, false, true).expectedDmg;
+            if (ssStrike >= normStrike) normalBreakPoint = ac;
+
+            const normAmb = evaluateStrike(ac, true, true, false).expectedDmg;
+            const ssAmb = evaluateStrike(ac, true, true, true).expectedDmg;
+            if (ssAmb >= normAmb) ambusherBreakPoint = ac;
+        }
+
+        const banner = document.getElementById('breakpointBanner');
+        let bannerText = '';
+
+        if (normalBreakPoint !== null) {
+            bannerText += `🎯 <strong>Normal Attack:</strong> Sharpshooter is optimal upto AC ${normalBreakPoint}.<br>`;
+        } else {
+            bannerText += `🛡️ <strong>Normal Attack:</strong> Sharpshooter is never optimal.<br>`;
+        }
+
+        if (document.getElementById('dreadAmbusher').checked) {
+            if (ambusherBreakPoint !== null) {
+                bannerText += `⚡ <strong>Ambusher Attack:</strong> Sharpshooter is optimal upto AC ${ambusherBreakPoint}.`;
+            } else {
+                bannerText += `⚡ <strong>Ambusher Attack:</strong> Sharpshooter is never optimal.`;
+            }
+        }
+
+        banner.innerHTML = bannerText;
+    }
+
+    function adjustResource(resource, delta) {
+        resources[resource] = Math.max(0, resources[resource] + delta);
+        updateResourceDisplay();
+    }
+
+    function setAC(ac) {
+        document.getElementById('targetAC').value = ac;
+        document.querySelectorAll('.btn-preset').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.textContent) === ac);
+        });
+        calculateAttack();
+    }
+
+    function updateResourceDisplay() {
+        document.getElementById('favoredFoeCount').textContent = resources.favoredFoe;
+    }
+
+    init();
+</script>
+
+</body>
+</html>
