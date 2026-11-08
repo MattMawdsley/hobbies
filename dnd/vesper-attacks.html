@@ -266,6 +266,8 @@
 
         .dmg-piercing { background: rgba(160, 196, 255, 0.15); color: var(--piercing-color); border: 1px solid var(--piercing-color); }
         .dmg-radiant { background: rgba(255, 209, 102, 0.15); color: var(--radiant-color); border: 1px solid var(--radiant-color); }
+        .dmg-crit { background: rgba(243, 156, 18, 0.15); color: var(--warning-color); border: 1px solid var(--warning-color); }
+        .dmg-flat { background: rgba(148, 163, 184, 0.15); color: #94a3b8; border: 1px solid #94a3b8; }
 
         .ac-input-group {
             display: flex;
@@ -373,6 +375,182 @@
             color: #fff;
             line-height: 1.4;
         }
+
+        .roll-btn {
+            background: var(--success-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            width: 100%;
+            margin-top: 10px;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .roll-btn:hover {
+            opacity: 0.9;
+        }
+
+        .roll-btn:active {
+            transform: scale(0.98);
+        }
+
+        .attack-results {
+            margin-top: 15px;
+        }
+
+        .attack-result-card {
+            background: #222;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #666;
+        }
+
+        .attack-result-card.hit {
+            border-left-color: var(--success-color);
+        }
+
+        .attack-result-card.crit {
+            border-left-color: var(--warning-color);
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .attack-result-card.miss {
+            border-left-color: var(--danger-color);
+            opacity: 0.7;
+        }
+
+        .attack-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .attack-number {
+            font-size: 0.75rem;
+            color: #888;
+            text-transform: uppercase;
+        }
+
+        .attack-type {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .attack-outcome {
+            font-weight: bold;
+            font-size: 0.85rem;
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .outcome-hit {
+            background: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+
+        .outcome-crit {
+            background: rgba(243, 156, 18, 0.2);
+            color: var(--warning-color);
+        }
+
+        .outcome-miss {
+            background: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+
+        .roll-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            font-size: 0.85rem;
+        }
+
+        .roll-details.wide {
+            grid-template-columns: 1fr;
+        }
+
+        .modifiers-inline {
+            font-size: 0.75rem;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .modifiers-inline span {
+            color: #aaa;
+        }
+
+        .roll-detail {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .roll-detail-label {
+            font-size: 0.7rem;
+            color: #888;
+        }
+
+        .roll-detail-value {
+            font-weight: bold;
+            color: #fff;
+        }
+
+        .damage-breakdown-inline {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px solid #333;
+            font-size: 0.8rem;
+        }
+
+        .damage-part {
+            display: inline-block;
+            margin-right: 8px;
+            color: #aaa;
+        }
+
+        .damage-part strong {
+            color: #fff;
+        }
+
+        .total-damage {
+            margin-top: 6px;
+            font-weight: bold;
+            font-size: 1rem;
+            color: var(--success-color);
+        }
+
+        .sequence-summary {
+            background: rgba(52, 152, 219, 0.15);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.85rem;
+        }
+
+        .summary-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .summary-label {
+            color: #aaa;
+        }
+
+        .summary-value {
+            font-weight: bold;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
@@ -476,7 +654,7 @@
             <div class="info-box">
                 <div class="ac-input-group">
                     <label for="targetAC">Target AC:</label>
-                    <input type="number" id="targetAC" value="15" min="1" max="30" onchange="calculateAttack()">
+                    <input type="number" id="targetAC" value="15" min="1" max="30" onchange="calculateAttack(); recalculateHits();">
                 </div>
                 <div class="preset-buttons">
                     <button class="btn-preset" onclick="setAC(10)">10</button>
@@ -534,6 +712,10 @@
                 <canvas id="acGraph" width="500" height="220"></canvas>
                 <div class="breakpoint-banner" id="breakpointBanner">Calculating break points...</div>
             </div>
+
+            <button class="roll-btn" onclick="rollAttackSequence()">🎲 Roll Attack Sequence</button>
+
+            <div class="attack-results" id="attackResults"></div>
         </div>
     </div>
 </div>
@@ -835,10 +1017,375 @@
             btn.classList.toggle('active', parseInt(btn.textContent) === ac);
         });
         calculateAttack();
+        recalculateHits();
+    }
+
+    function recalculateHits() {
+        const resultsContainer = document.getElementById('attackResults');
+        const cards = resultsContainer.querySelectorAll('.attack-result-card');
+
+        if (cards.length === 0) return;
+
+        const currentAC = parseInt(document.getElementById('targetAC').value) || 15;
+        let totalDamage = 0;
+        let hits = 0;
+        let crits = 0;
+
+        cards.forEach((card) => {
+            const totalToHit = parseInt(card.dataset.totalToHit);
+            const damage = parseInt(card.dataset.damage);
+            const isCrit = card.dataset.isCrit === 'true';
+
+            const isHit = isCrit || totalToHit >= currentAC;
+
+            // Update card class
+            card.classList.remove('hit', 'crit', 'miss');
+            if (isHit) {
+                card.classList.add(isCrit ? 'crit' : 'hit');
+            } else {
+                card.classList.add('miss');
+            }
+
+            // Update outcome badge
+            const outcomeBadge = card.querySelector('.attack-outcome');
+            outcomeBadge.classList.remove('outcome-hit', 'outcome-crit', 'outcome-miss');
+            if (isHit) {
+                outcomeBadge.classList.add(isCrit ? 'outcome-crit' : 'outcome-hit');
+                outcomeBadge.textContent = isCrit ? 'CRIT!' : 'HIT';
+            } else {
+                outcomeBadge.classList.add('outcome-miss');
+                outcomeBadge.textContent = 'MISS';
+            }
+
+            // Update total damage display
+            const totalDamageSpan = card.querySelector('.total-damage');
+            totalDamageSpan.textContent = `Total: ${damage} ${!isHit ? '(missed)' : ''}`;
+
+            if (isHit) {
+                totalDamage += damage;
+                hits++;
+                if (isCrit) crits++;
+            }
+        });
+
+        // Update summary
+        const summaryRow = resultsContainer.querySelector('.sequence-summary');
+        if (summaryRow) {
+            const rows = summaryRow.querySelectorAll('.summary-row');
+            rows[1].querySelector('.summary-value').textContent = hits;
+            rows[2].querySelector('.summary-value').textContent = crits;
+            rows[3].querySelector('.summary-value').textContent = totalDamage;
+        }
     }
 
     function updateResourceDisplay() {
         document.getElementById('favoredFoeCount').textContent = resources.favoredFoe;
+    }
+
+    function rollDice(sides, count = 1) {
+        let total = 0;
+        for (let i = 0; i < count; i++) {
+            total += Math.floor(Math.random() * sides) + 1;
+        }
+        return total;
+    }
+
+    function rollAttackSequence() {
+        const currentAC = parseInt(document.getElementById('targetAC').value) || 15;
+        const isSS = document.getElementById('sharpshooter').checked;
+        const hasAdvantage = document.getElementById('advantage').checked;
+        const hasExtraAttack = document.getElementById('extraAttack').checked;
+        const hasDreadAmbusher = document.getElementById('dreadAmbusher').checked;
+        const hasBonusAction = document.getElementById('bonusActionAttack').checked;
+        const hasHuntersMark = document.getElementById('huntersMark').checked;
+        const hasFavoredFoe = document.getElementById('favoredFoe').checked;
+        const doddsCrits = document.getElementById('doddsCrits').checked;
+
+        const toHit = calculateToHit(isSS);
+        const actionAttacksCount = hasExtraAttack ? 2 : 1;
+
+        let attacks = [];
+        let attackIndex = 0;
+        let isFirstStrike = true;
+
+        // Dread Ambusher attack
+        if (hasDreadAmbusher) {
+            attacks.push({
+                type: 'Dread Ambusher',
+                isAmbusher: true,
+                isFirstStrike: isFirstStrike
+            });
+            isFirstStrike = false;
+            attackIndex++;
+        }
+
+        // Action attacks
+        const remainingActionAttacks = hasDreadAmbusher ? actionAttacksCount : actionAttacksCount;
+        for (let i = 0; i < remainingActionAttacks; i++) {
+            attacks.push({
+                type: hasExtraAttack ? `Action Attack ${i + 1}` : 'Action Attack',
+                isAmbusher: false,
+                isFirstStrike: isFirstStrike
+            });
+            isFirstStrike = false;
+            attackIndex++;
+        }
+
+        // Bonus action attack
+        if (hasBonusAction) {
+            attacks.push({
+                type: 'Bonus Action Attack',
+                isAmbusher: false,
+                isFirstStrike: isFirstStrike
+            });
+        }
+
+        // Roll each attack
+        let results = [];
+        let totalDamage = 0;
+        let hits = 0;
+        let crits = 0;
+
+        attacks.forEach((attack, idx) => {
+            const roll1 = rollDice(20);
+            const roll2 = hasAdvantage ? rollDice(20) : null;
+            const finalRoll = hasAdvantage ? Math.max(roll1, roll2) : roll1;
+
+            // Calculate to-hit modifiers
+            const hitModifiers = [];
+            hitModifiers.push(`+${PROFICIENCY} Proficiency`);
+            hitModifiers.push(`+${DEX_MOD} DEX`);
+            hitModifiers.push(`+2 Magic`);
+            if (isSS) hitModifiers.push(`-5 Sharpshooter`);
+
+            const totalToHit = toHit + finalRoll;
+            const isCrit = finalRoll === 20;
+            const isHit = isCrit || totalToHit >= currentAC;
+
+            let damage = 0;
+            let damageBreakdown = [];
+
+            // Always roll damage, but only add to total on hit
+            // Base piercing damage
+            const piercingRoll = rollDice(6);
+            const piercingTotal = piercingRoll + DEX_MOD + 1;
+            damage += piercingTotal;
+            damageBreakdown.push({
+                roll: piercingRoll,
+                modifiers: `+${DEX_MOD}+1`,
+                total: piercingTotal,
+                label: 'Piercing',
+                type: 'piercing'
+            });
+
+            // Radiant damage
+            const radiantRoll = rollDice(6);
+            damage += radiantRoll;
+            damageBreakdown.push({
+                roll: radiantRoll,
+                modifiers: '',
+                total: radiantRoll,
+                label: 'Radiant',
+                type: 'radiant'
+            });
+
+            // Hunter's Mark
+            if (hasHuntersMark) {
+                const hmRoll = rollDice(6);
+                damage += hmRoll;
+                damageBreakdown.push({
+                    roll: hmRoll,
+                    modifiers: '',
+                    total: hmRoll,
+                    label: "Hunter's Mark",
+                    type: 'piercing'
+                });
+            }
+
+            // Favored Foe (first strike only)
+            if (attack.isFirstStrike && hasFavoredFoe) {
+                const ffRoll = rollDice(6);
+                damage += ffRoll;
+                damageBreakdown.push({
+                    roll: ffRoll,
+                    modifiers: '',
+                    total: ffRoll,
+                    label: 'Favored Foe',
+                    type: 'piercing'
+                });
+            }
+
+            // Dread Ambusher
+            if (attack.isAmbusher) {
+                const ambushRoll = rollDice(8);
+                damage += ambushRoll;
+                damageBreakdown.push({
+                    roll: ambushRoll,
+                    modifiers: '',
+                    total: ambushRoll,
+                    label: 'Dread Ambusher',
+                    type: 'piercing'
+                });
+            }
+
+            // Sharpshooter bonus
+            if (isSS) {
+                damage += 10;
+                damageBreakdown.push({
+                    roll: 0,
+                    modifiers: '+10',
+                    total: 10,
+                    label: 'Sharpshooter',
+                    type: 'flat'
+                });
+            }
+
+            // Dodd's Crits
+            if (isCrit && doddsCrits) {
+                // Add max dice values
+                const baseDice = 1 + (hasHuntersMark ? 1 : 0) + (attack.isFirstStrike && hasFavoredFoe ? 1 : 0);
+                const maxBase = baseDice * 6;
+                const maxAmbush = attack.isAmbusher ? 8 : 0;
+                const maxRadiant = 6;
+                const critBonus = maxBase + maxAmbush + maxRadiant;
+                damage += critBonus;
+                damageBreakdown.push({
+                    roll: 0,
+                    modifiers: `+${critBonus}`,
+                    total: critBonus,
+                    label: "Dodd's Crit (max dice)",
+                    type: 'crit'
+                });
+            } else if (isCrit) {
+                // Normal crit - double dice
+                const baseDice = 1 + (hasHuntersMark ? 1 : 0) + (attack.isFirstStrike && hasFavoredFoe ? 1 : 0);
+                const critDice = baseDice * 6;
+                const critAmbush = attack.isAmbusher ? 8 : 0;
+                const critRadiant = 6;
+                const critBonus = critDice + critAmbush + critRadiant;
+                damage += critBonus;
+                damageBreakdown.push({
+                    roll: 0,
+                    modifiers: `+${critBonus}`,
+                    total: critBonus,
+                    label: 'Crit (double dice)',
+                    type: 'crit'
+                });
+            }
+
+            if (isHit) {
+                totalDamage += damage;
+                hits++;
+                if (isCrit) crits++;
+            }
+
+            results.push({
+                attackNumber: idx + 1,
+                type: attack.type,
+                roll1,
+                roll2,
+                finalRoll,
+                hitModifiers,
+                totalToHit,
+                isHit,
+                isCrit,
+                damage,
+                damageBreakdown,
+                acAtRoll: currentAC
+            });
+        });
+
+        // Display results
+        displayAttackResults(results, totalDamage, hits, crits, attacks.length);
+    }
+
+    function displayAttackResults(results, totalDamage, hits, crits, totalAttacks) {
+        const container = document.getElementById('attackResults');
+        container.innerHTML = '';
+
+        // Recalculate total damage based on hits only
+        const actualTotalDamage = results.filter(r => r.isHit).reduce((sum, r) => sum + r.damage, 0);
+
+        // Sequence summary
+        const summary = document.createElement('div');
+        summary.className = 'sequence-summary';
+        summary.innerHTML = `
+            <div class="summary-row">
+                <span class="summary-label">Total Attacks:</span>
+                <span class="summary-value">${totalAttacks}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Hits:</span>
+                <span class="summary-value">${hits}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Crits:</span>
+                <span class="summary-value">${crits}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Total Damage:</span>
+                <span class="summary-value" style="color: var(--success-color);">${actualTotalDamage}</span>
+            </div>
+        `;
+        container.appendChild(summary);
+
+        // Individual attack results
+        results.forEach(result => {
+            const card = document.createElement('div');
+            let outcomeClass = result.isHit ? (result.isCrit ? 'crit' : 'hit') : 'miss';
+            card.className = `attack-result-card ${outcomeClass}`;
+
+            const outcomeText = result.isCrit ? 'CRIT!' : (result.isHit ? 'HIT' : 'MISS');
+            const outcomeClassText = result.isCrit ? 'outcome-crit' : (result.isHit ? 'outcome-hit' : 'outcome-miss');
+
+            const rollDisplay = result.roll2
+                ? `${result.roll1} / ${result.roll2} → ${result.finalRoll}`
+                : `${result.roll1}`;
+
+            const modifiersDisplay = result.hitModifiers.join(' + ');
+
+            card.innerHTML = `
+                <div class="attack-header">
+                    <span class="attack-number">Attack #${result.attackNumber}</span>
+                    <span class="attack-type">${result.type}</span>
+                    <span class="attack-outcome ${outcomeClassText}">${outcomeText}</span>
+                </div>
+                <div class="roll-details">
+                    <div class="roll-detail">
+                        <span class="roll-detail-label">Attack Roll</span>
+                        <span class="roll-detail-value">${rollDisplay}</span>
+                    </div>
+                    <div class="roll-detail">
+                        <span class="roll-detail-label">Total To-Hit</span>
+                        <span class="roll-detail-value">${result.totalToHit}</span>
+                    </div>
+                </div>
+                <div class="modifiers-inline">Mods: <span>${modifiersDisplay}</span></div>
+                <div class="damage-breakdown-inline">
+                    ${result.damageBreakdown.map(db => {
+                        let colorClass = '';
+                        if (db.type === 'piercing') colorClass = 'dmg-piercing';
+                        else if (db.type === 'radiant') colorClass = 'dmg-radiant';
+                        else if (db.type === 'crit') colorClass = 'dmg-crit';
+                        else colorClass = 'dmg-flat';
+
+                        const formula = db.modifiers
+                            ? `${db.roll}${db.modifiers} = ${db.total}`
+                            : `${db.roll}`;
+
+                        return `<span class="dmg-tag ${colorClass}">${db.label}: ${formula}</span>`;
+                    }).join('')}
+                    <div class="total-damage">Total: ${result.damage} ${!result.isHit ? '(missed)' : ''}</div>
+                </div>
+            `;
+
+            // Store data for recalculation
+            card.dataset.totalToHit = result.totalToHit;
+            card.dataset.damage = result.damage;
+            card.dataset.isCrit = result.isCrit;
+
+            container.appendChild(card);
+        });
     }
 
     init();
